@@ -1,9 +1,11 @@
 // const express = require('express');
 import express from 'express';
 import bodyParser from "body-parser";
-import mongoose from "mongoose";
+import mongoose, {Schema} from "mongoose";
+import {ObjectId} from "mongodb";
 
 import UserModel from "./models/user.model";
+import ArticleModel from "./models/article.model";
 
 import CustomResponse from "./dtos/custom.response";
 
@@ -110,8 +112,29 @@ app.post('/user/auth', async (req: express.Request, res: express.Response) => {
 
 // ----------------- article -------------------
 
-app.post('/article', (req: express.Request, res: express.Response) => {
+app.post('/article', async (req: express.Request, res: express.Response) => {
     try {
+
+        let req_body = req.body;
+
+        console.log(req_body)
+
+        let articleModel = new ArticleModel({
+            title: req_body.title,
+            description: req_body.description,
+            user: new ObjectId(req.body.user)
+        });
+
+        await articleModel.save().then(r => {
+            res.status(200).send(
+                new CustomResponse(200, "Article created successfully.")
+            )
+        }).catch(e => {
+            console.log(e)
+            res.status(100).send(
+                new CustomResponse(100, "Something went wrongs")
+            )
+        });
 
     } catch (error) {
         res.status(100).send("Error");
