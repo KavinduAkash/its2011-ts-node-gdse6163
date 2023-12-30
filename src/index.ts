@@ -1,10 +1,16 @@
 // const express = require('express');
 import express from 'express';
+import bodyParser from "body-parser";
 
 // invoke the express
 const app = express();
 
+// @ts-ignore
+app.use(bodyParser.json());
 
+/**
+ * Get all user
+ */
 app.get('/user/all', (req: express.Request, res: express.Response) => {
 
     let data = {
@@ -16,6 +22,17 @@ app.get('/user/all', (req: express.Request, res: express.Response) => {
     }
 
     res.send(data);
+})
+
+/**
+ * Create new user
+ */
+app.post('/user', (req: express.Request, res: express.Response) => {
+
+    const req_body: any = req.body;
+    console.log(req_body);
+
+    res.send("OK!");
 })
 
 
