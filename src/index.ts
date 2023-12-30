@@ -3,6 +3,10 @@ import express from 'express';
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
 
+import UserModel from "./models/user.model";
+
+import CustomResponse from "./dtos/custom.response";
+
 // invoke the express
 const app = express();
 
@@ -36,32 +40,72 @@ db.on('open', () => {
 /**
  * Get all user
  */
-app.get('/user/all', (req: express.Request, res: express.Response) => {
+app.get('/user/all', async (req: express.Request, res: express.Response) => {
 
-    // let data = {
-    //     _id: "asdasdasdasdasda",
-    //     username: "pathums",
-    //     fname: "Pathum",
-    //     lname: "Silva",
-    //     email: "pathums@ijse.lk"
-    // }
-
-    res.send(users);
+    try {
+        let users = await UserModel.find();
+        res.status(200).send(
+            new CustomResponse(200, "Users are found successfully", users)
+        );
+    } catch (error) {
+        res.status(100).send("Error")
+    }
 })
 
 /**
  * Create new user
  */
-app.post('/user', (req: express.Request, res: express.Response) => {
+app.post('/user', async (req: express.Request, res: express.Response) => {
+    try {
+        const req_body: any = req.body;
+        const userModel = new UserModel({
+            username: req_body.username,
+            fname: req_body.fname,
+            lname: req_body.lname,
+            email: req_body.email,
+            password: req_body.password
+        })
+        let user = await userModel.save();
+        user.password = "";
+        res.status(200).send(
+            new CustomResponse(200, "User created successfully", user)
+        )
+    } catch (error) {
+        res.status(100).send("Error")
+    }
 
-    const req_body: any = req.body;
-    console.log(req_body);
-
-    users.push(req_body);
-
-    res.send("OK!");
 })
 
+/**
+ * Auth
+ */
+app.post('/user/auth', async (req: express.Request, res: express.Response) => {
+    try {
+
+        let request_body = req.body
+        // email, password
+
+        let user = await UserModel.findOne({email: request_body.email});
+        if(user) {
+           if(user.password === request_body.password) {
+               res.status(200).send(
+                   new CustomResponse(200, "Access", user)
+               );
+           } else {
+               res.status(401).send(
+                   new CustomResponse(401, "Invalid credentials")
+               );
+           }
+        } else {
+            res.status(404).send(
+                new CustomResponse(404, "User not found")
+            );
+        }
+
+    } catch (error) {
+        res.status(100).send("Error");
+    }
+})
 
 // start the server
 app.listen(8081, () => {
