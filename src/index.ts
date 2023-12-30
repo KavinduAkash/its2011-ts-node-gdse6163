@@ -141,6 +141,20 @@ app.post('/article', async (req: express.Request, res: express.Response) => {
     }
 });
 
+
+app.get('/article', async (req: express.Request, res: express.Response) => {
+    try {
+
+        let articles = await ArticleModel.find();
+        res.status(200).send(
+            new CustomResponse(200, "Articles are found successfully", articles)
+        )
+
+    } catch (error) {
+        res.status(100).send("Error");
+    }
+})
+
 // start the server
 app.listen(8081, () => {
     console.log("Server started on port 8081")
