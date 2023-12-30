@@ -1,6 +1,7 @@
 // const express = require('express');
 import express from 'express';
 import bodyParser from "body-parser";
+import mongoose from "mongoose";
 
 // invoke the express
 const app = express();
@@ -17,6 +18,20 @@ interface User {
 }
 
 let users: User[] = [];
+
+
+
+mongoose.connect("mongodb://localhost/blog")
+const db = mongoose.connection
+
+db.on('error', (error) => {
+    console.log("DB Connection Error: ", error)
+})
+
+db.on('open', () => {
+    console.log("DB Connected Successfully")
+})
+
 
 /**
  * Get all user
