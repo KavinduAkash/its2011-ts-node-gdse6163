@@ -6,12 +6,13 @@ import express from 'express';
 import bodyParser from "body-parser";
 import mongoose, {Schema} from "mongoose";
 import {ObjectId} from "mongodb";
+import * as process from "process";
+import jwt, {Secret} from 'jsonwebtoken';
 
 import UserModel from "./models/user.model";
 import ArticleModel from "./models/article.model";
 
 import CustomResponse from "./dtos/custom.response";
-import * as process from "process";
 
 // invoke the express
 const app = express();
@@ -91,9 +92,31 @@ app.post('/user/auth', async (req: express.Request, res: express.Response) => {
         let user = await UserModel.findOne({email: request_body.email});
         if(user) {
            if(user.password === request_body.password) {
-               res.status(200).send(
-                   new CustomResponse(200, "Access", user)
-               );
+
+               // token gen
+               user.password = "";
+
+               const expiresIn = '1w';
+
+               jwt.sign({user}, process.env.SECRET as Secret, {expiresIn}, (err: any, token: any) => {
+
+                   if(err) {
+                       res.status(100).send(
+                           new CustomResponse(100, "Someting went wrong")
+                       );
+                   } else {
+
+                       let res_body = {
+                           user: user,
+                           accessToken: token
+                       }
+
+                       res.status(200).send(
+                           new CustomResponse(200, "Access", res_body)
+                       );
+                   }
+
+               })
            } else {
                res.status(401).send(
                    new CustomResponse(401, "Invalid credentials")
@@ -112,17 +135,38 @@ app.post('/user/auth', async (req: express.Request, res: express.Response) => {
 
 // ----------------- article -------------------
 
-app.post('/article', async (req: express.Request, res: express.Response) => {
+const verifyToken = (req: express.Request, res: any, next: express.NextFunction) => {
+
+    const token = req.headers.authorization;
+    // verify the token
+
+    if(!token) {
+        return res.status(401).json('Invalid token')
+    }
+
+    try {
+        const data = jwt.verify(token, process.env.SECRET as Secret);
+        res.tokenData = data;
+        next();
+    } catch (error) {
+        return res.status(401).json('Invalid token')
+    }
+}
+
+app.post('/article', verifyToken, async (req: express.Request, res: any) => {
+
     try {
 
         let req_body = req.body;
+
+        let user_id = res.tokenData.user._id;
 
         console.log(req_body)
 
         let articleModel = new ArticleModel({
             title: req_body.title,
             description: req_body.description,
-            user: new ObjectId(req.body.user)
+            user: new ObjectId(user_id)
         });
 
         await articleModel.save().then(r => {
