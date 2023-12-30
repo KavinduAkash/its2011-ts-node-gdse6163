@@ -145,8 +145,6 @@ app.post('/article', async (req: express.Request, res: express.Response) => {
 app.get('/article', async (req: express.Request, res: express.Response) => {
     try {
 
-        console.log(req.query)
-
         let req_query: any = req.query;
         let size: number = req_query.size;
         let page: number = req_query.page;
@@ -159,6 +157,31 @@ app.get('/article', async (req: express.Request, res: express.Response) => {
         res.status(200).send(
             new CustomResponse(200, "Articles are found successfully", articles, pageCount)
         )
+
+    } catch (error) {
+        res.status(100).send("Error");
+    }
+})
+
+app.get('/article/:username', async (req: express.Request, res: express.Response) =>{
+    try {
+
+        console.log(req.params.username);
+
+        let username: string = req.params.username;
+
+        let user = await UserModel.findOne({username: username});
+
+        if(!user) {
+            res.status(404).send(
+                new CustomResponse(404, "User not found")
+            )
+        } else {
+            let articles = await ArticleModel.find({user: user._id})
+            res.status(200).send(
+                new CustomResponse(200, "Articles are found successfully", articles)
+            )
+        }
 
     } catch (error) {
         res.status(100).send("Error");
