@@ -36,6 +36,7 @@ db.on('open', () => {
     console.log("DB Connected Successfully")
 })
 
+// ----------------- user -------------------
 
 /**
  * Get all user
@@ -106,6 +107,16 @@ app.post('/user/auth', async (req: express.Request, res: express.Response) => {
         res.status(100).send("Error");
     }
 })
+
+// ----------------- article -------------------
+
+app.post('/article', (req: express.Request, res: express.Response) => {
+    try {
+
+    } catch (error) {
+        res.status(100).send("Error");
+    }
+});
 
 // start the server
 app.listen(8081, () => {
