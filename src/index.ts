@@ -145,9 +145,19 @@ app.post('/article', async (req: express.Request, res: express.Response) => {
 app.get('/article', async (req: express.Request, res: express.Response) => {
     try {
 
-        let articles = await ArticleModel.find();
+        console.log(req.query)
+
+        let req_query: any = req.query;
+        let size: number = req_query.size;
+        let page: number = req_query.page;
+
+        let articles = await ArticleModel.find().limit(size).skip(size * (page - 1));
+
+        let documentCount = await ArticleModel.countDocuments();
+        let pageCount = Math.ceil(documentCount/size);
+
         res.status(200).send(
-            new CustomResponse(200, "Articles are found successfully", articles)
+            new CustomResponse(200, "Articles are found successfully", articles, pageCount)
         )
 
     } catch (error) {

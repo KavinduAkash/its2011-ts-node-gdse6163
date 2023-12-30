@@ -2,12 +2,14 @@ export default class CustomResponse {
     private _status: number;
     private _message: string;
     private _data?: any;
+    private _totalPages?: any;
 
 
-    constructor(status: number, message: string, data?: any) {
+    constructor(status: number, message: string, data?: any, totalPages?: any) {
         this._status = status;
         this._message = message;
         this._data = data;
+        this._totalPages = totalPages;
     }
 
 
@@ -35,11 +37,21 @@ export default class CustomResponse {
         this._data = value;
     }
 
+
+    get totalPages(): any {
+        return this._totalPages;
+    }
+
+    set totalPages(value: any) {
+        this._totalPages = value;
+    }
+
     toJSON() {
         return {
             status: this._status,
             message: this._message,
-            data: this._data
+            data: this._data,
+            totalPages: this._totalPages
         }
     }
 }
