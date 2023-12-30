@@ -166,7 +166,9 @@ app.get('/article', async (req: express.Request, res: express.Response) => {
 app.get('/article/:username', async (req: express.Request, res: express.Response) =>{
     try {
 
-        console.log(req.params.username);
+        let req_query: any = req.query;
+        let size: number = req_query.size;
+        let page: number = req_query.page;
 
         let username: string = req.params.username;
 
@@ -177,9 +179,13 @@ app.get('/article/:username', async (req: express.Request, res: express.Response
                 new CustomResponse(404, "User not found")
             )
         } else {
-            let articles = await ArticleModel.find({user: user._id})
+            let articles = await ArticleModel.find({user: user._id}).limit(size).skip(size * (page - 1))
+
+            let documentCount = await ArticleModel.countDocuments({user: user._id});
+            let pageCount = Math.ceil(documentCount/size);
+
             res.status(200).send(
-                new CustomResponse(200, "Articles are found successfully", articles)
+                new CustomResponse(200, "Articles are found successfully", articles, pageCount)
             )
         }
 
