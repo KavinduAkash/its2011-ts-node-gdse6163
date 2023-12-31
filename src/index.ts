@@ -9,8 +9,9 @@ import {ObjectId} from "mongodb";
 import * as process from "process";
 import jwt, {Secret} from 'jsonwebtoken';
 
-import UserModel, {Iuser} from "./models/user.model";
+import UserModel from "./models/user.model";
 import ArticleModel from "./models/article.model";
+import * as SchemaTypes from "./types/SchemaTypes";
 
 import CustomResponse from "./dtos/custom.response";
 
@@ -69,7 +70,7 @@ app.post('/user', async (req: express.Request, res: express.Response) => {
             email: req_body.email,
             password: req_body.password
         })
-        let user:Iuser | null = await userModel.save();
+        let user:SchemaTypes.Iuser | null = await userModel.save();
 
         if(user) {
             user.password = "";
@@ -96,7 +97,7 @@ app.post('/user/auth', async (req: express.Request, res: express.Response) => {
         let request_body = req.body
         // email, password
 
-        let user: Iuser | null = await UserModel.findOne({email: request_body.email});
+        let user: SchemaTypes.Iuser | null = await UserModel.findOne({email: request_body.email});
         if(user) {
            if(user.password === request_body.password) {
 
