@@ -9,7 +9,7 @@ import {ObjectId} from "mongodb";
 import * as process from "process";
 import jwt, {Secret} from 'jsonwebtoken';
 
-import UserModel from "./models/user.model";
+import UserModel, {Iuser} from "./models/user.model";
 import ArticleModel from "./models/article.model";
 
 import CustomResponse from "./dtos/custom.response";
@@ -69,11 +69,18 @@ app.post('/user', async (req: express.Request, res: express.Response) => {
             email: req_body.email,
             password: req_body.password
         })
-        let user = await userModel.save();
-        user.password = "";
-        res.status(200).send(
-            new CustomResponse(200, "User created successfully", user)
-        )
+        let user:Iuser | null = await userModel.save();
+
+        if(user) {
+            user.password = "";
+            res.status(200).send(
+                new CustomResponse(200, "User created successfully", user)
+            )
+        } else {
+            res.status(100).send(
+                new CustomResponse(100, "Something went wrong.")
+            )
+        }
     } catch (error) {
         res.status(100).send("Error")
     }
@@ -89,7 +96,7 @@ app.post('/user/auth', async (req: express.Request, res: express.Response) => {
         let request_body = req.body
         // email, password
 
-        let user = await UserModel.findOne({email: request_body.email});
+        let user: Iuser | null = await UserModel.findOne({email: request_body.email});
         if(user) {
            if(user.password === request_body.password) {
 
@@ -215,7 +222,7 @@ app.get('/article/:username', async (req: express.Request, res: express.Response
 
         let username: string = req.params.username;
 
-        let user = await UserModel.findOne({username: username});
+        let user:any = await UserModel.findOne({username: username});
 
         if(!user) {
             res.status(404).send(
@@ -231,6 +238,29 @@ app.get('/article/:username', async (req: express.Request, res: express.Response
                 new CustomResponse(200, "Articles are found successfully", articles, pageCount)
             )
         }
+
+    } catch (error) {
+        res.status(100).send("Error");
+    }
+})
+
+app.get('/article/get/my', verifyToken, async (req: express.Request, res: any) => {
+    try {
+
+        let req_query: any = req.query;
+        let size: number = req_query.size;
+        let page: number = req_query.page;
+
+        let user_id = res.tokenData.user._id;
+
+        let articles = await ArticleModel.find({user:user_id}).limit(size).skip(size * (page - 1))
+
+        let documentCount = await ArticleModel.countDocuments({user: user_id});
+        let pageCount = Math.ceil(documentCount/size);
+
+        res.status(200).send(
+            new CustomResponse(200, "Articles are found successfully", articles, pageCount)
+        )
 
     } catch (error) {
         res.status(100).send("Error");
