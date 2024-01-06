@@ -7,6 +7,7 @@ import bodyParser from "body-parser";
 import mongoose, {Schema} from "mongoose";
 import {ObjectId} from "mongodb";
 import * as process from "process";
+import cors from "cors";
 import jwt, {Secret} from 'jsonwebtoken';
 
 import UserModel from "./models/user.model";
@@ -20,6 +21,11 @@ import ArticleRoutes from "./routes/article.routes";
 
 // invoke the express
 const app = express();
+
+
+app.use(cors({
+    origin: "*"
+}))
 
 // @ts-ignore
 app.use(bodyParser.json());
